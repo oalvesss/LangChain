@@ -1,4 +1,5 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 import os
@@ -6,34 +7,26 @@ import os
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
-numero_dias = 7
-numero_criancas = 2
-atividade = "praia"
 
-modelo_de_prompt = PromptTemplate(
-    input_variables=["dias", "numero_criancas", "atividade"],
+prompt_cidade = PromptTemplate(
     template="""
-    Crie um roteiro de viagem de {dias} dias,
-    para uma familia com {numero_criancas} crianças,
-    que gostam de {atividade}
-    """
+    Sugira uma cidade dado o meu interesse por {interesse}.
+    """,
+    input_variables=["interesse"]
 )
-
-prompt = modelo_de_prompt.format(
-    dias = numero_dias,
-    numero_criancas = numero_criancas,
-    atividade = atividade
-)
-
-print("Prompt : \n", prompt)
-
 
 modelo = ChatGoogleGenerativeAI(
     model="gemini-3.6-flash",
-    temperature=0.5,
+    temperature=0.2,
     api_key=api_key
 )
 
-resposta = modelo.invoke(prompt)
+cadeia = prompt_cidade | modelo | StrOutputParser()
 
-print(resposta.text)
+resposta = cadeia.invoke(
+    {
+        "interesse" : "praias"
+    }
+)
+
+print(resposta)
